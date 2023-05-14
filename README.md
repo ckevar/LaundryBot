@@ -6,7 +6,7 @@ The telegram is linked to a google spreadsheet, this spreadsheet has 3 sheets: L
 ## Laundry 
 This is the table
 
-|   |   |   |   |   |
+| Name   | Stock  | For Laundry  |   |   |
 |---|---|---|---|---|
 |   |   |   |   |   |
 |   |   |   |   |   |
