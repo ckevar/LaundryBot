@@ -30,3 +30,6 @@ This Table increases after each interaction
 |Epoch |	username	| text |
 |------|------------|------|
 |   |
+
+# Infographics
+![Infographics](/img/Infographic.jpg)
