@@ -1,0 +1,491 @@
+// THIS IS AN APP SCRIPT OF A GOOGLE SPREADSHEET
+/*** BOT CONFIGURATION ORIENTED FUNCTIONS ***/
+let TG_TOKEN = "6234049897:AAGWLi4-5vCQwQhraFUBgH-me3970XO1byg";
+let SPREADSHEET_ID = "1d6OflgE8PUDjUOAYegnBowll-4o1o1olRKIwb6efYqI"
+
+function getMe() {
+  let response = UrlFetchApp.fetch("https://api.telegram.org/bot" + TG_TOKEN + "/getMe");
+  console.log(response.getContentText()); 
+}
+
+function setWebhook() {
+  let webApp = "https://script.google.com/macros/s/AKfycbxhiJKA-yHoWs_jpGfLt41lTAkL3-PPD6X-NZRU6q2ayZQ3FrvAqWoJLZzKYRXk9f0/exec";
+  let response = UrlFetchApp.fetch("https://api.telegram.org/bot" + TG_TOKEN + "/setWebhook?url=" + webApp);
+  console.log(response.getContentText());
+}
+
+function sendMessage(chat_id, text) {
+  let data = {
+    method: "post",
+    payload: {
+      method: "sendMessage",
+      chat_id: String(chat_id),
+      text: text,
+      parse_mode: "HTML",
+    }
+  }
+  UrlFetchApp.fetch('https://api.telegram.org/bot' + TG_TOKEN + '/', data);
+}
+
+function setMyCommands(cmds) {
+  let data = {
+    method: "post",
+    payload: {
+      method: "setMyCommands",
+      commands: JSON.stringify(cmds, null, 0),
+    }
+  }
+  UrlFetchApp.fetch("https://api.telegram.org/bot" + TG_TOKEN + "/", data);
+}
+/*** ************************************ ***/
+
+/*** APPLICATION ORIENTED FUNCTIONS ***/
+
+let NAME_COL = 1;
+let STOCK_COL = 2;
+let DIRTY_COL = 3;
+let INLAUNDRY_COL = 4;
+let BIN_COL = 5;
+let TOTAL_COL = 6;
+let STOCK_BK_COL = 7;
+let DIRTY_BK_COL = 8;
+let INLAUNDRY_BK_COL = 9;
+let BIN_BK_COL = 10;
+let TOTAL_BK_COL = 11;
+let DIRTY_TODAY_COL = 12;
+let BIN_TODAY_COL = 13;
+
+let ITEMS_NAME = ["singlebedsheets", "pillowcases", "doublebedsheets", "bidettowel", "handtowel", "bathtowel", "bathmat", "singlemattresscover", "doublemattresscover"];
+let ITEMS_LNAME = ["Single Bed Sheets", "Pillow Cases", "Double Bed Sheets", "Bidet Towel", "Hand Towel", "Bath Towel", "Bath Mat", "Single Mattress Cover", "Double Mattress Cover"];
+
+let DIRTY_CMD = "dirty";
+let UNDIRTY_CMD = "undirty";
+let BIN_CMD = "bin";
+let UNBIN_CMD = "unbin"
+let CLEAN_CMD = "clean";
+let UNCLEAN_CMD = "unclean";
+let SETINLAUNDRY_CMD = "setinlaundry";
+
+function setMyBotCommands() {
+  let COMMANDS = 
+  [{command: "help", description: "Detailed description of commands"},
+  {command: DIRTY_CMD + "_" + ITEMS_NAME[0], description: "Single bed sheets for laundry"},
+  {command: DIRTY_CMD + "_" + ITEMS_NAME[1], description: "Pillow cases for laundry"},
+  {command: "bin_singlebedsheets", description: "Damaged single bedsheets"},
+  {command: "bin_pillowcases", description: "Damaged pillow cases"},
+  {command: "clean_singlebedsheets", description: "Incoming single bed sheets from laundry"},
+  {command: "clean_pillowcases", description: "Incoming pillow cases from laundry"},
+  {command: "sent_to_laundry", description: "Set dirty items in laundry"},
+  {command: "setinlaundry_singlebedsheets", description: "Set a specific number in laundry"},
+  {command: "setinlaundry_pillowcases", description: "Set a specific number in laundry"},
+  {command: "inlaundry", description: "Items in the laundry"},
+  {command: "stock", description: "Current stock"},
+  {command: "bin", description: "Items in bin"},
+  {command: "total", description: "Total item, stock + in laundry + bin"},
+  {command: "dirty", description: "Dirty items for laundry"},
+  {command: "dirtytoday", description: "Dirty items reg today"},
+  {command: "dirty_doublebedsheets", description: "Double bed sheets for laundry"},
+  {command: "dirty_bidettowel", description: "Bidet towel for laundry"},
+  {command: "dirty_handtowel", description: "Hand towel for laundry"},
+  {command: "dirty_bathtowel", description: "Bath towel for laundry"},
+  {command: "dirty_bathmat", description: "Bath mat for laundry"},
+  {command: "dirty_singlemattresscover", description: "Single Mattress cover for laundry"},
+  {command: "dirty_doublemattresscover", description: "Double Mattress cover for laundry"},
+  {command: "bin_doublebedsheets", description: "Damage Double bed sheets"},
+  {command: "bin_bidettowel", description: "Damage Bidet towel"},
+  {command: "bin_handtowel", description: "Damage Hand towel"},
+  {command: "bin_bathtowel", description: "Damage bath towel"},
+  {command: "bin_bathmat", description: "Damage bath mat"},
+  {command: "bin_singlemattresscover", description: "Damage Single Mattress cover"},
+  {command: "bin_doublemattresscover", description: "Damage Double Mattress cover"},
+  {command: "clean_doublebedsheets", description: "Incoming Double bed sheets from laundry"},
+  {command: "clean_bidettowel", description: "Incoming Bidet towel from laundry"},
+  {command: "clean_handtowel", description: "Incoming Hand towel from laundry"},
+  {command: "clean_bathtowel", description: "Incoming bath towel from laundry"},
+  {command: "clean_bathmat", description: "Incoming bath mat from laundry"},
+  {command: "clean_singlemattresscover", description: "Incoming Single Mattress cover from laundry"},
+  {command: "clean_doublemattresscover", description: "Incoming Double Mattress cover from laundry"},
+  {command: "setinlaundry_doublebedsheets", description: "Set a specific number in laundry"},
+  {command: "setinlaundry_bidettowel", description: "Set a specific number in laundry"},
+  {command: "setinlaundry_handtowel", description: "Set a specific number in laundry"},
+  {command: "setinlaundry_bathtowel", description: "Set a specific number in laundry"},
+  {command: "setinlaundry_bathmat", description: "Set a specific number in laundry"},
+  {command: "setinlaundry_singlemattcover", description: "Set a specific number in laundry"},
+  {command: "setinlaundry_doublemattcover", description: "Set a specific number in laundry"},
+  {command: "undirty_singlebedsheets", description: "Undo Single bed sheets for laundry"},
+  {command: "undirty_pillowcases", description: "Undo Pillow cases for laundry"},
+  {command: "undirty_doublebedsheets", description: "Undo Double bed sheets for laundry"},
+  {command: "undirty_bidettowel", description: "Undo Bidet towel for laundry"},
+  {command: "undirty_handtowel", description: "Undo Hand towel for laundry"},
+  {command: "undirty_bathtowel", description: "Undo Bath towel for laundry"},
+  {command: "undirty_bathmat", description: "Undo Bath mat for laundry"},
+  {command: "undirty_singlemattresscover", description: "Undo Single Mattress cover for laundry"},
+  {command: "undirty_doublemattresscover", description: "Undo Double Mattress cover for laundry"},
+  {command: "unbin_singlebedsheets", description: "(Under developement) Restore single bedsheets"},
+  {command: "unbin_pillowcases", description: "(Under developement) Restore pillow cases"},
+  {command: "unbin_doublebedsheets", description: "(Under developement) Restore Double bed sheets"},
+  {command: "unbin_bidettowel", description: "(Under developement) Restore Bidet towel"},
+  {command: "unbin_handtowel", description: "(Under developement) Restore Hand towel"},
+  {command: "unbin_bathtowel", description: "(Under developement) Restore bath towel"},
+  {command: "unbin_bathmat", description: "(Under developement) Restore bath mat"},
+  {command: "unbin_singlemattresscover", description: "(Under developement) Restore Single Mattress cover"},
+  {command: "unbin_doublemattresscover", description: "(Under developement) Restore Double Mattress cover"},
+  {command: "unclean_singlebedsheets", description: "(Under developement) Correct Incoming single bed sheets from laundry"},
+  {command: "unclean_pillowcases", description: "(Under developement) Correct Incoming pillow cases from laundry"},
+  {command: "unclean_doublebedsheets", description: "(Under developement) Correct Incoming Double bed sheets from laundry"},
+  {command: "unclean_bidettowel", description: "(Under developement) Correct Incoming Bidet towel from laundry"},
+  {command: "unclean_handtowel", description: "(Under developement) Correct Incoming Hand towel from laundry"},
+  {command: "unclean_bathtowel", description: "(Under developement) Correct Incoming bath towel from laundry"},
+  {command: "unclean_bathmat", description: "(Under developement) Correct Incoming bath mat from laundry"},
+  ];
+  setMyCommands(COMMANDS);
+}
+
+function sendStockStatus(chat_id, item, perday) {
+  // Open file
+  let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+  let stock = sheetfile.getRange(item, STOCK_COL).getValue();
+  let dirty = sheetfile.getRange(item, DIRTY_COL).getValue();
+  let inLaundry = sheetfile.getRange(item, INLAUNDRY_COL).getValue();
+  sendMessage(chat_id, "Status: Clean " + stock + ", Dirty " + dirty + ", Stock for " + String(Number(stock)/perday) + " Days, In-Laundry " + inLaundry);
+}
+
+function sent_to_laundry(chat_id) {
+  let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+
+  for (let item = 2; item < 11; item = item + 1) {
+    let name = sheetfile.getRange(item, NAME_COL).getValue();
+    let stock = sheetfile.getRange(item, STOCK_COL).getValue();
+    let dirty = Number(sheetfile.getRange(item, DIRTY_COL).getValue());
+    if (dirty > 0) {
+      let inLaundry = Number(sheetfile.getRange(item, INLAUNDRY_COL).getValue()) + dirty;
+      sheetfile.getRange(item, DIRTY_COL).setValue(0);
+      sheetfile.getRange(item, INLAUNDRY_COL).setValue(inLaundry);
+    }
+    sendMessage(chat_id, name + ": Clean " + stock + ", Dirty 0, In-Laundry " + inLaundry);
+  }
+  
+}
+
+/*************************/
+
+function sendCountingCol(chat_id, col, col_name) {
+  let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+  let msg = col_name + " HPT\n";
+  for (let item = 2; item < 11; item = item + 1) {
+    let name = sheetfile.getRange(item, NAME_COL).getValue();
+    let counts = sheetfile.getRange(item, col).getValue();
+    msg = msg + String(item - 1) + ". " + name + " " + counts + "\n";
+  }
+  sendMessage(chat_id, msg);
+}
+
+/*************************/
+
+/*******************************/
+function regTimeSeriesStock(date, stock, item) {
+  SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry_log").appendRow([date, item, stock])
+
+}
+
+function regDirtyOnes(chat_id, date, argc_v, item, daily) {
+  if(argc_v.length > 1) {
+    let argv = Number(argc_v[1]);
+
+    if (isNaN(argv)) {
+      sendMessage(chat_id, "Argument shall be a number.");
+
+    } else {
+
+      // Open file
+      let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+      
+      // New count of clean ones
+      let stock = Number(sheetfile.getRange(item, STOCK_COL).getValue()) - argv;
+      let todaydirty = Number(sheetfile.getRange(item, DIRTY_TODAY_COL).getValue()) + argv;
+      // New count of dirty ones
+      argv += Number(sheetfile.getRange(item, DIRTY_COL).getValue());
+      
+      // Update file with clean and dirty ones
+      sheetfile.getRange(item, STOCK_COL).setValue(stock);
+      sheetfile.getRange(item, DIRTY_COL).setValue(argv);
+      sheetfile.getRange(item, DIRTY_TODAY_COL).setValue(todaydirty);
+
+      //Register Timeseries stock
+      regTimeSeriesStock(date, stock, item);
+      sendMessage(chat_id, "Update:\n Clean " + String(stock) + "\n Dirty " + String(argv) + "\n Dirty Today " + String(todaydirty) + "\n Stock for " + String(stock/daily) + " days");
+    }
+         
+  } else {
+    sendStockStatus(chat_id, item, daily);
+  }
+}
+
+function regUnDirtyOnes(chat_id, date, argc_v, item, daily) {
+  if(argc_v.length > 1) {
+    let argv = Number(argc_v[1]);
+
+    if (isNaN(argv)) {
+      sendMessage(chat_id, "Argument shall be a number.");
+
+    } else {
+
+      // Open file
+      let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+      
+      // New count of clean ones
+      let stock = Number(sheetfile.getRange(item, STOCK_COL).getValue()) + argv;
+      
+      // New count of dirty ones
+      argv = Number(sheetfile.getRange(item, DIRTY_COL).getValue()) - argv;
+      
+      // Update file with clean and dirty ones
+      sheetfile.getRange(item, STOCK_COL).setValue(stock);
+      sheetfile.getRange(item, DIRTY_COL).setValue(argv);
+
+      //Register Timeseries stock
+      regTimeSeriesStock(date, stock, item);
+
+      sendMessage(chat_id, "Update: Clean " + String(stock) + ", Dirty " + String(argv) + ", Stock for " + String(stock/daily) + " days");
+    }
+         
+  } else {
+    sendMessage(chat_id, "It needs an argument, how many you misscounted. i.e /undirty_singlebedsheet 10");
+  }
+}
+/*******************************/
+
+function setCleanOnes(chat_id, argc_v, item, perday) {
+  if(argc_v.length > 1) {
+    let argv = Number(argc_v[1]);
+
+    if (isNaN(argv)) {
+      sendMessage(chat_id, "Argument shall be a number.");
+
+    } else {
+      // Open file
+      let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+      
+      // New count of in-laundry
+      let inLaundry = Number(sheetfile.getRange(item, INLAUNDRY_COL).getValue()) - argv;
+      
+      // New count of clean ones
+      let stock = Number(sheetfile.getRange(item, STOCK_COL).getValue()) + argv;
+      
+      // New count of dirty ones
+      argv = sheetfile.getRange(item, DIRTY_COL).getValue();
+      
+      // Update file with clean, in-laundry
+      sheetfile.getRange(item, STOCK_COL).setValue(stock);
+      sheetfile.getRange(item, INLAUNDRY_COL).setValue(inLaundry)
+      sendMessage(chat_id, "Update: Clean " + String(stock) + ", Dirty " + String(argv) + ", Remaning days " + String(stock/perday), ", Left in laundry " + String(inLaundry));
+    }
+         
+  } else {
+    sendStockStatus(chat_id, item, perday);
+  }
+}
+
+function set_inLaundry(chat_id, argc_v, item) {
+  if(argc_v.length > 1) {
+    let argv = Number(argc_v[1]);
+
+    if (isNaN(argv)) {
+      sendMessage(chat_id, "Argument shall be a number.");
+
+    } else {
+      // Open file
+      let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+      sheetfile.getRange(item, INLAUNDRY_COL).setValue(argv)
+      sendMessage(chat_id, "Update: set in laundry " + String(argv));
+    }
+         
+  } else {
+    sendMessage(chat_id, "You need an argument, if you wanna know how many items are on laundry, use /inlaundry" );
+  }
+}
+
+function binDamagedOnes(chat_id, argc_v, item) {
+  if(argc_v.length > 1) {
+    let argv = Number(argc_v[1]);
+
+    if (isNaN(argv)) {
+      sendMessage(chat_id, "Argument shall be a number.");
+
+    } else {
+      // Open file
+      let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+      let stock = Number(sheetfile.getRange(item, STOCK_COL).getValue()) - argv;
+      argv += Number(sheetfile.getRange(item, BIN_COL).getValue());
+
+      sheetfile.getRange(item, BIN_COL).setValue(argv);
+      sheetfile.getRange(item, STOCK_COL).setValue(stock)
+      sendMessage(chat_id, "Update in bin: " + String(argv) + ", new stock: " + String(stock));
+    }
+         
+  } else {
+      let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+      let argv = sheetfile.getRange(item, BIN_COL).getValue();
+      sendMessage(chat_id, "In bin: " + argv);
+  }
+}
+
+function unbinDamagedOnes(chat_id, argc_v, item) {
+  if(argc_v.length > 1) {
+    let argv = Number(argc_v[1]);
+
+    if (isNaN(argv)) {
+      sendMessage(chat_id, "Argument shall be a number.");
+
+    } else {
+      // Open file
+      let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+      let stock = Number(sheetfile.getRange(item, STOCK_COL).getValue()) + argv;
+      argv = Number(sheetfile.getRange(item, BIN_COL).getValue()) - argv;
+
+      sheetfile.getRange(item, BIN_COL).setValue(argv);
+      sheetfile.getRange(item, STOCK_COL).setValue(stock)
+      sendMessage(chat_id, "Update in bin: " + String(argv) + ", new stock: " + String(stock));
+    }
+         
+  } else {
+      let sheetfile = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Laundry");
+      let argv = sheetfile.getRange(item, BIN_COL).getValue();
+      sendMessage(chat_id, "In bin: " + argv);
+  }
+}
+
+function parseCommand(chat_id, date, cmd) {
+  let SINGLE_BED_SHEETS_ROW = 2;
+  let PILLOW_CASES_ROW = 3;
+  let DOUBLE_BED_SHEETS_ROW = 4;
+  let BIDET_TOWEL_ROW = 5;
+  let HAND_TOWEL_ROW = 6;
+  let BATH_TOWEL_ROW = 7;
+  let BATH_MAT_ROW = 8;
+  let SINGLE_MATTRESS_COVER_ROW = 9;
+  let DOUBLE_MATTRESS_COVER_ROW = 10;
+  let DAILY_USAGE = [56, 28, 8, 28, 28, 28, 6, 28, 4];
+
+  let argc_v = cmd.split(" ");
+  let actionItem = argc_v[0].split("_");
+  let ItemFound = false;
+  
+  if (actionItem[0] == ("/" + DIRTY_CMD)) {
+    
+    // Items to be registered
+    if(actionItem.length > 1) {
+      for (let i = 0; i < ITEMS_NAME.length; i = i + 1) {
+        if(actionItem[1] == ITEMS_NAME[i]) {
+          regDirtyOnes(chat_id, date, argc_v, i + 2, DAILY_USAGE[i]);
+          ItemFound = true;
+        }
+      }
+      if(!ItemFound){
+        sendMessage(chat_id, "Item Not found")
+      }
+    
+    // List items in Dirty
+    } else {
+      sendCountingCol(chat_id, DIRTY_COL, "Dirty List");
+    }
+     
+  }
+  
+  else if (actionItem[0] == ("/" + BIN_CMD)) {
+    // Items to be registered
+    if(actionItem.length > 1) {
+      for (let i = 0; i < ITEMS_NAME.length; i = i + 1) {
+       if(actionItem[1] == ITEMS_NAME[i]) {
+          binDamagedOnes(chat_id, argc_v, i + 2);
+          ItemFound = true;
+        }
+      }
+      if(!ItemFound) sendMessage(chat_id, "Item not found");
+    }
+    // List Items in Bin
+    else {
+      sendCountingCol(chat_id, BIN_COL, "Bin List");
+    }
+    
+  }
+
+  else if(actionItem[0] == ("/" + CLEAN_CMD)) {
+    for(let i = 0; i < ITEMS_NAME.length; i = i + 1) {
+      if(actionItem[1] == ITEMS_NAME[i]) {
+        setCleanOnes(chat_id, argc_v, i + 2, DAILY_USAGE[i]);
+      }
+    }
+  }
+
+  else if (actionItem[0] == ("/" + UNDIRTY_CMD)) {
+    for (let i = 0; i < ITEMS_NAME.length; i = i + 1) {
+      if(actionItem[1] == ITEMS_NAME[i]) {
+        regUnDirtyOnes(chat_id, date, argc_v, i + 2, DAILY_USAGE[i]);
+      }
+    }
+  }
+  
+  else if (actionItem[0] == ("/" + UNBIN_CMD)) {
+    for (let i = 0; i < ITEMS_NAME.length; i = i + 1) {
+      if(actionItem[1] == ITEMS_NAME[i]) {
+        unbinDamagedOnes(chat_id, argc_v, i + 2);
+      }
+    }
+  }
+
+  else if(actionItem[0] == ("/" + UNCLEAN_CMD)) {
+    // TODO: 
+    /*
+    for(let i = 0; i < ITEMS_NAME.length; i = i + 1) {
+      setUnCleanOnes(chat_id, argc_v, i + 2, DAILY_USAGE[i]);
+    }
+    */
+    sendMessage(chat_id, "Under development");
+  }
+
+  else if(actionItem[0] == ("/" + SETINLAUNDRY_CMD)) {
+    for (let i = 0; i < ITEMS_NAME.length; i = i + 1) {
+      set_inLaundry(chat_id, argc_v, i + 2);
+    }
+  }
+
+  else if (actionItem[0] == "/sent_to_laundry") {
+    sent_to_laundry(chat_id);
+  }
+
+  else if (actionItem[0] == "/inlaundry") {
+    sendCountingCol(chat_id, INLAUNDRY_COL, "In Laundry");
+  }
+
+  else if (actionItem[0] == "/stock") {
+    sendCountingCol(chat_id, STOCK_COL, "Stock");
+  }
+
+  else if (actionItem[0] == "/total") {
+    sendCountingCol(chat_id, TOTAL_COL, "Stock + Laundry + Bin");
+  } else if (actionItem[0] == ("/dirtytoday")) {
+    sendCountingCol(chat_id, DIRTY_TODAY_COL, "Dirty Items registered today");
+  }
+
+  else if (actionItem[0] == "/help") {
+   sendMessage(chat_id, "Basic commands\n/help - Detail description of commands\n/stock - Returns the current stock\n/inlaundry - Amount of items that were sent to the laundry\n/sent_to_laundry - automatically moves all items registered as dirty into laundry state\n\nRegister dirty items, commonly used upon cleaning\n/dirty_singlebedsheets N - Registers N Single bed sheets for laundry\n/dirty_pillowcases N - Registers N Pillow cases for laundry\n\nRegister damage items\n/bin_singlebedsheets N - Registers N Damaged single bedsheets\n/bin_pillowcases N - Registers N damaged pillow cases\n\nRegister arriving clean items from the laundry\n/clean_singlebedsheets N - Registers N incoming single bed sheets from laundry\n/clean_pillowcases N - Registers N incoming pillow cases from laundry\n\nSet specific Numbers set for laundry, in case there was misregistration and you are aware of it\n/setinlaundry_singlebedsheets N - Set N items in the laundry\n/setinlaundry_pillowcases - Set N pillow cases in the laundry") 
+  } else {
+    sendMessage(chat_id, "Unknown command, try /help");
+  }
+}
+
+function logInteraction (date, usrname, text) {
+  SpreadsheetApp.openById("1d6OflgE8PUDjUOAYegnBowll-4o1o1olRKIwb6efYqI").getSheetByName("interaction_log").appendRow([date, usrname, text]);
+}
+
+function doPost(e) {
+  let contents = JSON.parse(e.postData.contents);
+  let chat_id = contents.message.chat.id;
+  let text = contents.message.text;
+  let date = contents.message.date;
+  let usrname = contents.message.from.username;
+  parseCommand(chat_id, date, text);
+  logInteraction(date, usrname, text)
+  //SpreadsheetApp.getActive().getActiveSheet().getRange(2, 1).setValue(JSON.stringify(contents, null, 5)); 
+}
