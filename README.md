@@ -32,4 +32,6 @@ This Table increases after each interaction
 |   |
 
 # Infographics
+It's in spanish tho 
+
 ![Infographics](/Infographic.jpg)
