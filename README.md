@@ -32,4 +32,4 @@ This Table increases after each interaction
 |   |
 
 # Infographics
-![Infographics](/img/Infographic.jpg)
+![Infographics](/Infographic.jpg)
