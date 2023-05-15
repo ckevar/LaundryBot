@@ -1,7 +1,7 @@
 // THIS IS AN APP SCRIPT OF A GOOGLE SPREADSHEET
 /*** BOT CONFIGURATION ORIENTED FUNCTIONS ***/
-let TG_TOKEN = "6234049897:AAGWLi4-5vCQwQhraFUBgH-me3970XO1byg";
-let SPREADSHEET_ID = "1d6OflgE8PUDjUOAYegnBowll-4o1o1olRKIwb6efYqI"
+let TG_TOKEN = "YOUR_BOT_TOKEN_HERE";
+let SPREADSHEET_ID = "YOUR_SPREADSHEET_ID"
 
 function getMe() {
   let response = UrlFetchApp.fetch("https://api.telegram.org/bot" + TG_TOKEN + "/getMe");
