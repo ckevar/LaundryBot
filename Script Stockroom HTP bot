@@ -9,7 +9,7 @@ function getMe() {
 }
 
 function setWebhook() {
-  let webApp = "https://script.google.com/macros/s/AKfycbxhiJKA-yHoWs_jpGfLt41lTAkL3-PPD6X-NZRU6q2ayZQ3FrvAqWoJLZzKYRXk9f0/exec";
+  let webApp = "YOUR_SCRIPT_LINK_DEPLOYMENT_GOES_HERE";
   let response = UrlFetchApp.fetch("https://api.telegram.org/bot" + TG_TOKEN + "/setWebhook?url=" + webApp);
   console.log(response.getContentText());
 }
